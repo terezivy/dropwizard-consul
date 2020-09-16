@@ -36,10 +36,8 @@ import com.orbitz.consul.model.agent.ImmutableRegistration;
 import com.smoketurner.dropwizard.consul.ConsulFactory;
 import io.dropwizard.jetty.MutableServletContextHandler;
 import io.dropwizard.setup.Environment;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+
+import java.util.*;
 import java.util.function.Supplier;
 import org.junit.Before;
 import org.junit.Test;
@@ -80,6 +78,30 @@ public class ConsulAdvertiserTest {
   public void testRegister() {
     when(agent.isRegistered(serviceId)).thenReturn(false);
     advertiser.register("http", 8080, 8081);
+
+    final ImmutableRegistration registration =
+        ImmutableRegistration.builder()
+            .port(8080)
+            .check(
+                ImmutableRegCheck.builder()
+                    .http("http://127.0.0.1:8081/admin/healthcheck")
+                    .interval("1s")
+                    .deregisterCriticalServiceAfter("1m")
+                    .build())
+            .name("test")
+            .meta(ImmutableMap.of("scheme", "http"))
+            .id(serviceId)
+            .build();
+
+    verify(agent).register(registration);
+  }
+
+  @Test
+  public void testRegisterWithSubnetAndNullRegisteredIps() {
+    when(agent.isRegistered(serviceId)).thenReturn(false);
+      List<String> ipAddresses = new ArrayList<>();
+      ipAddresses.add(null);
+      advertiser.register("http", 8080, 8081, ipAddresses);
 
     final ImmutableRegistration registration =
         ImmutableRegistration.builder()

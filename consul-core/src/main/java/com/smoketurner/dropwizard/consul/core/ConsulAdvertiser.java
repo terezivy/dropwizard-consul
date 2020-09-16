@@ -261,7 +261,7 @@ public class ConsulAdvertiser {
   private Optional<String> findFirstEligibleIpBySubnet(Collection<String> ipAddresses) {
     SubnetUtils subnetUtils = new SubnetUtils(serviceSubnet.get());
     SubnetUtils.SubnetInfo subNetInfo = subnetUtils.getInfo();
-    return ipAddresses.stream().filter(subNetInfo::isInRange).findFirst();
+    return ipAddresses.stream().filter(Objects::nonNull).filter(subNetInfo::isInRange).findFirst();
   }
 
   /** Deregister a service from Consul */
